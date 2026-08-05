@@ -1,0 +1,50 @@
+name: QC
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qc-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install media tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install browser QC dependency
+        run: |
+          npm install --no-save --no-package-lock playwright
+          npx playwright install --with-deps chromium
+
+      - name: Run static and media QC
+        run: python3 tools/qc.py
+
+      - name: Run native and mobile browser QC
+        run: node tools/qc_browser.mjs
+
+      - name: Upload QC screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: recall-clock-qc-${{ github.run_id }}
+          path: qc-output/
+          if-no-files-found: ignore
+          retention-days: 14
