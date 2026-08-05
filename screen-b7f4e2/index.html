@@ -11,33 +11,48 @@
   <link rel="preload" href="fonts/OpenSans-Regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/OpenSans-SemiBold.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/PTSerif-Bold.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="style.css?v=20260805-1">
+  <link rel="stylesheet" href="style.css?v=20260806-1">
 </head>
 <body>
-  <main id="stage" aria-label="Recall-Bot three-panel clock prototype">
-    <section class="panel" data-kind="hour">
-      <video id="hour-video" class="panel-video" muted autoplay loop playsinline preload="auto"></video>
-      <div class="shade" aria-hidden="true"></div>
-      <header class="panel-header"><div class="panel-label">HOUR</div><div class="panel-date">WED 05 AUG</div></header>
-      <div class="panel-value" id="hour-value">17</div>
-      <footer class="panel-footer"><time class="mini-clock">17:05:00</time></footer>
-    </section>
-    <section class="panel" data-kind="minute">
-      <video id="minute-video" class="panel-video" muted autoplay loop playsinline preload="auto"></video>
-      <div class="shade" aria-hidden="true"></div>
-      <header class="panel-header"><div class="panel-label">MINUTE</div><div class="panel-date">WED 05 AUG</div></header>
-      <div class="panel-value" id="minute-value">05</div>
-      <footer class="panel-footer"><time class="mini-clock">17:05:00</time></footer>
-    </section>
-    <section class="panel" data-kind="second">
-      <video id="second-video" class="panel-video" muted autoplay loop playsinline preload="auto"></video>
-      <div class="shade" aria-hidden="true"></div>
-      <header class="panel-header"><div class="panel-label">SECOND</div><div class="panel-date">WED 05 AUG</div></header>
-      <div class="panel-value" id="second-value">00</div>
-      <footer class="panel-footer"><time class="mini-clock">17:05:00</time></footer>
-    </section>
-  </main>
+  <div id="viewport">
+    <div id="stage-shell">
+      <main id="stage" aria-label="Recall-Bot three-panel clock prototype">
+        <section class="panel" data-kind="hour">
+          <video id="hour-video" class="panel-video" muted autoplay loop playsinline preload="auto"></video>
+          <div class="shade" aria-hidden="true"></div>
+          <header class="panel-header">
+            <div class="panel-date">THU 06 AUG</div>
+            <div class="panel-label">HOUR</div>
+          </header>
+          <div class="panel-value" id="hour-value">00</div>
+          <footer class="panel-footer"><time class="mini-clock">00:00:00</time></footer>
+        </section>
+
+        <section class="panel" data-kind="minute">
+          <video id="minute-video" class="panel-video" muted autoplay loop playsinline preload="auto"></video>
+          <div class="shade" aria-hidden="true"></div>
+          <header class="panel-header">
+            <div class="panel-date">THU 06 AUG</div>
+            <div class="panel-label">MINUTE</div>
+          </header>
+          <div class="panel-value" id="minute-value">00</div>
+          <footer class="panel-footer"><time class="mini-clock">00:00:00</time></footer>
+        </section>
+
+        <section class="panel" data-kind="second">
+          <video id="second-video" class="panel-video" muted autoplay loop playsinline preload="auto"></video>
+          <div class="shade" aria-hidden="true"></div>
+          <header class="panel-header">
+            <div class="panel-date">THU 06 AUG</div>
+            <div class="panel-label">SECOND</div>
+          </header>
+          <div class="panel-value" id="second-value">00</div>
+          <footer class="panel-footer"><time class="mini-clock">00:00:00</time></footer>
+        </section>
+      </main>
+    </div>
+  </div>
   <aside id="debug" hidden></aside>
-  <script src="app.js?v=20260805-1"></script>
+  <script src="app.js?v=20260806-1"></script>
 </body>
 </html>
