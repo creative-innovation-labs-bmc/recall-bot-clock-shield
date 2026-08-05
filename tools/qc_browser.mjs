@@ -56,7 +56,7 @@ try {
 
       await page.goto(SCREEN_URL, { waitUntil: 'domcontentloaded' });
       await page.evaluate(() => document.fonts.ready);
-      await page.waitForTimeout(1500);
+      await page.waitForTimeout(1800);
 
       const result = await page.evaluate(() => {
         const stage = document.querySelector('#stage');
@@ -65,6 +65,7 @@ try {
         const shellRect = shell.getBoundingClientRect();
         const panels = [...document.querySelectorAll('.panel')];
         const videos = [...document.querySelectorAll('video')];
+        const qc = window.__RECALL_CLOCK_QC__;
         return {
           stageOffset: [stage.offsetWidth, stage.offsetHeight],
           stageRect: [stageRect.width, stageRect.height],
@@ -76,7 +77,9 @@ try {
           openSansLoaded: document.fonts.check('28px "Open Sans Local"'),
           ptSerifLoaded: document.fonts.check('320px "PT Serif Local"'),
           bodyOverflow: [document.body.scrollWidth, document.body.scrollHeight, innerWidth, innerHeight],
-          qcApi: Boolean(window.__RECALL_CLOCK_QC__),
+          qcApi: Boolean(qc),
+          assetMode: qc?.assets?.mode,
+          syncState: qc?.syncState?.(),
         };
       });
 
@@ -95,6 +98,12 @@ try {
       assert.equal(result.openSansLoaded, true);
       assert.equal(result.ptSerifLoaded, true);
       assert.equal(result.qcApi, true);
+      assert.equal(result.assetMode, 'placeholder');
+      assert.deepEqual(Object.keys(result.syncState).sort(), ['hour', 'minute', 'second']);
+      Object.values(result.syncState).forEach(state => {
+        assert.equal(typeof state.lastDriftMs, 'number');
+        assert.equal(typeof state.lastAction, 'string');
+      });
       assert.ok(result.stageRect[0] <= capture.width + 0.5);
       assert.ok(result.stageRect[1] <= capture.height + 0.5);
       assert.ok(Math.abs(result.stageRect[0] / result.stageRect[1] - 3840 / 804) < 0.001);
@@ -117,7 +126,7 @@ try {
     await browser.close();
   }
 
-  console.log('Browser QC passed: native, desktop and mobile layouts are stable and local-only.');
+  console.log('Browser QC passed: native, desktop and mobile layouts, local assets and sync diagnostics are stable.');
 } finally {
   server.kill('SIGTERM');
 }

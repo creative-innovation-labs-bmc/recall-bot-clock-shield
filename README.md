@@ -50,11 +50,47 @@ The asset workflow creates three local placeholder MP4 loops:
 
 The placeholder sign face is kept clear for the live PT Serif value. The three animations use different phase offsets so simultaneous playback is easy to verify.
 
-Replace files under `screen-b7f4e2/assets/videos/` without changing the HTML structure.
+## Production asset map
+
+`screen-b7f4e2/asset-config.js` controls the transition from placeholders to final media.
+
+Current mode:
+
+```text
+placeholder
+```
+
+Prepared production paths:
+
+```text
+assets/hour/00.mp4 to assets/hour/23.mp4
+assets/minute/00.mp4 to assets/minute/59.mp4
+assets/second/seconds-00-59.mp4
+```
+
+Hour and minute media switch only when their clock values change. The second panel uses one continuous clock-aligned cycle.
+
+## Clock-aligned video synchronisation
+
+The system clock remains the timing authority. Video time is treated as presentation state and corrected against the clock.
+
+The current implementation:
+
+- calculates the correct phase for hour, minute and second videos
+- aligns each video after metadata loads
+- uses `requestVideoFrameCallback()` where available
+- falls back to watchdog-based checks where it is unavailable
+- ignores drift below 70 ms
+- gently corrects small drift at `0.98×` or `1.02×`
+- seeks directly when drift exceeds 180 ms
+- forces a resynchronisation after visibility changes or stalled playback
+- uses circular drift calculations across loop boundaries
+
+The 12-second placeholders are already clock-phase aligned. When the final 60-second seconds video is enabled, it will be aligned to milliseconds elapsed within the current minute.
 
 ## Runtime resilience
 
-The current framework includes:
+The framework also includes:
 
 - Melbourne time locked with `Intl.DateTimeFormat`
 - whole-second aligned clock updates
@@ -62,6 +98,7 @@ The current framework includes:
 - stalled and waiting playback handling
 - a six-second playback watchdog
 - visibility and orientation recovery
+- automatic fallback to placeholder media when a production asset fails
 - video dropped-frame reporting where supported
 
 ## Debug view
@@ -70,8 +107,10 @@ Append `?debug=1` to show:
 
 - native and viewport dimensions
 - actual stage scale
+- active asset mode
 - Melbourne date and time
 - playback state and media time for all three videos
+- playback rate, measured drift and correction mode
 - dropped and total video frames where supported
 - local font loading state
 
@@ -85,6 +124,8 @@ Append `?debug=1` to show:
 - exact 3840 × 804 stage declarations
 - three panel videos
 - Melbourne timezone logic
+- production asset paths
+- frame callback, playback-rate and seek correction code
 - local-only production runtime files
 - noindex privacy directives
 
@@ -96,6 +137,8 @@ Append `?debug=1` to show:
 - three 1280 × 804 internal panels
 - date visibility at every test size
 - local font loading
+- active placeholder asset mode
+- sync diagnostics for all three panels
 - no page or console errors
 - no external runtime requests
 - no horizontal or vertical overflow
@@ -108,8 +151,8 @@ The asset workflow runs `tools/build_assets.py`, then the static/media QC. It cr
 
 ## Next implementation stages
 
-1. Add 24 hour assets and hourly source selection.
-2. Add 60 minute assets and minute-boundary switching.
-3. Replace the seconds placeholder with an exact 60-second `00–59` video.
-4. Add frame-aware drift correction against Melbourne system time.
-5. Add managed media hosting and a local cache strategy for the production video library.
+1. Upload the 24 hour assets and enable the hour mapping.
+2. Upload the 60 minute assets and enable minute-boundary switching.
+3. Upload the exact 60-second `00–59` sequence and enable the second mapping.
+4. Add managed media hosting and a local cache strategy for the production video library.
+5. Run extended soak testing on the installed Shield.
