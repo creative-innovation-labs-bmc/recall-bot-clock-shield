@@ -12,10 +12,13 @@ SCREEN = ROOT / 'screen-b7f4e2'
 def probe(path: Path) -> dict[str, object]:
     output = subprocess.check_output([
         'ffprobe', '-v', 'error', '-select_streams', 'v:0',
-        '-show_entries', 'stream=codec_name,width,height,r_frame_rate,pix_fmt,has_b_frames,duration',
+        '-show_entries', 'stream=codec_name,width,height,r_frame_rate,pix_fmt,has_b_frames:format=duration',
         '-of', 'json', str(path),
     ], text=True)
-    return json.loads(output)['streams'][0]
+    parsed = json.loads(output)
+    stream = parsed['streams'][0]
+    stream['duration'] = parsed['format']['duration']
+    return stream
 
 
 def main() -> None:
@@ -31,7 +34,7 @@ def main() -> None:
         assert 11.9 <= float(data['duration']) <= 12.1, (video, data)
 
     required = [
-        'index.html', 'style.css', 'app.js',
+        'index.html', 'style.css', 'app.js', 'asset-config.js',
         'fonts/PTSerif-Bold.woff2',
         'fonts/OpenSans-Regular.woff2',
         'fonts/OpenSans-SemiBold.woff2',
@@ -42,26 +45,36 @@ def main() -> None:
     html = (SCREEN / 'index.html').read_text(encoding='utf-8')
     css = (SCREEN / 'style.css').read_text(encoding='utf-8')
     js = (SCREEN / 'app.js').read_text(encoding='utf-8')
+    asset_config = (SCREEN / 'asset-config.js').read_text(encoding='utf-8')
     root_html = (ROOT / 'index.html').read_text(encoding='utf-8')
 
     assert html.count('<video') == 3
     assert 'id="stage-shell"' in html
+    assert 'asset-config.js' in html
     assert 'noindex,nofollow,noarchive,nosnippet,noimageindex' in html
     assert "width:var(--stage-width)" in css and "height:var(--stage-height)" in css
     assert '--stage-width:3840px' in css and '--stage-height:804px' in css
     assert 'OpenSans-Regular.woff2' in css and 'PTSerif-Bold.woff2' in css
     assert "Australia/Melbourne" in js
     assert 'nativeWidth: 3840' in js and 'nativeHeight: 804' in js
+    assert 'requestVideoFrameCallback' in js
+    assert 'playbackRate' in js
+    assert 'video.currentTime = target' in js
+    assert 'softDriftSeconds: 0.07' in js and 'hardDriftSeconds: 0.18' in js
     assert '__RECALL_CLOCK_QC__' in js
+    assert "mode: 'placeholder'" in asset_config
+    assert "template: 'assets/hour/{value}.mp4'" in asset_config
+    assert "template: 'assets/minute/{value}.mp4'" in asset_config
+    assert "source: 'assets/second/seconds-00-59.mp4'" in asset_config
     assert 'noindex,nofollow,noarchive,nosnippet,noimageindex' in root_html
 
-    combined = '\n'.join([html, css, js])
+    combined = '\n'.join([html, css, js, asset_config])
     assert not re.search(r'https?://', combined), 'Production route must not request external runtime assets'
 
     for font in (SCREEN / 'fonts').glob('*.woff2'):
         assert font.read_bytes()[:4] == b'wOF2', f'Invalid WOFF2 file: {font}'
 
-    print('QC passed: fixed 3840×804 layout, three H.264 placeholders, local fonts and privacy directives.')
+    print('QC passed: fixed layout, local assets, production mapping and frame-aware drift correction.')
 
 
 if __name__ == '__main__':
